@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cobertura de código em C com gcov, gcovr e lcov</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; margin: 0; background: #f5f7fa; color: #1f2933; line-height: 1.75; }
+    header { background: #0f172a; color: #ffffff; padding: 2rem 1.5rem; }
+    header h1 { margin: 0; font-size: 2rem; }
+    header p { margin-top: .6rem; opacity: .9; }
+    nav { background: #1e293b; padding: .7rem 1.2rem; position: sticky; top: 0; z-index: 100; }
+    nav a { color: #cbd5f5; margin-right: 1rem; text-decoration: none; font-size: .9rem; white-space: nowrap; }
+    nav a:hover { text-decoration: underline; }
+    main { max-width: 1150px; margin: auto; padding: 2.5rem 1.5rem; }
+    section { margin-bottom: 4rem; }
+    h2 { border-bottom: 2px solid #e5e7eb; padding-bottom: .4rem; color: #0f172a; }
+    h3 { margin-top: 2rem; color: #1e293b; }
+    h4 { margin-top: 1.2rem; color: #334155; }
+    pre { background: #0b1020; color: #e5e7eb; padding: 1.2rem; overflow-x: auto; border-radius: 6px; font-size: .9rem; }
+    code { color: #38bdf8; }
+    ul { margin-left: 1.5rem; }
+    li { margin-bottom: .4rem; }
+    .note { background: #e0f2fe; border-left: 4px solid #0284c7; padding: 1rem; margin: 1.5rem 0; }
+    .warn { background: #fff7ed; border-left: 4px solid #f97316; padding: 1rem; margin: 1.5rem 0; }
+    footer { background: #0f172a; color: #cbd5f5; text-align: center; padding: 1.2rem; font-size: .85rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Cobertura de código em C com gcov, gcovr e lcov</h1>
+  <p>
+    Curso de Residência Tecnológica para o Setor Automotivo (SWT3)<br>
+    Tutorial com e sem framework de testes (Unity)<br>
+    <strong>by:</strong> Eryca F. de Moura e Silva
+  </p>
+</header>
+
+<nav>
+  <a href="#ferramentas">Ferramentas</a>
+  <a href="#links">Links</a>
+  <a href="#projeto">Projeto</a>
+  <a href="#instalacao">Instalação</a>
+  <a href="#unity">Unity</a>
+  <a href="#execucao">Execução</a>
+  <a href="#gcovr">GCOVR</a>
+  <a href="#lcov">LCOV</a>
+  <a href="#mcdc">MC/DC</a>
+  <a href="#makefile">Makefile</a>
+</nav>
+
+<main>
+
+<section id="ferramentas">
+  <h2>1. Ferramentas de cobertura de código</h2>
+
+  <h3>1.1 GCOV</h3>
+  <p>O <strong>gcov</strong> é uma ferramenta nativa do GCC responsável pela coleta de dados de cobertura durante a execução do programa.</p>
+  <p>Suas principais funções são:</p>
+  <ul>
+    <li>Instrumentar automaticamente o código-fonte durante a compilação</li>
+    <li>Gerar arquivos <code>.gcno</code>, que descrevem a estrutura do código (blocos e fluxo)</li>
+    <li>Gerar arquivos <code>.gcda</code>, que armazenam os dados de execução coletados em tempo de execução</li>
+  </ul>
+
+  <h3>1.2 GCOVR</h3>
+  <p>O <strong>gcovr</strong> é uma ferramenta escrita em Python que atua como uma camada de automação sobre o gcov, simplificando a coleta, consolidação e geração de relatórios.</p>
+
+  <h4>Principais características</h4>
+  <ul>
+    <li>Coleta automática dos dados gerados pelo gcov</li>
+    <li>Consolidação de múltiplos arquivos e diretórios</li>
+    <li>Geração de relatórios em diversos formatos</li>
+    <li>Fácil integração com pipelines CI/CD</li>
+    <li>Suporte a filtros por diretórios, arquivos e expressões regulares</li>
+  </ul>
+
+  <h4>Formatos de relatório suportados</h4>
+  <ul>
+    <li>Texto (terminal)</li>
+    <li>HTML</li>
+    <li>XML (Cobertura / SonarQube)</li>
+    <li>JSON</li>
+  </ul>
+
+  <h4>Tipos de cobertura suportados</h4>
+  <ul>
+    <li>Line coverage</li>
+    <li>Branch coverage</li>
+  </ul>
+
+  <div class="warn">O GCOVR não suporta MC/DC nativamente, exigindo análise complementar.</div>
+
+  <h3>1.3 LCOV</h3>
+  <p>O <strong>lcov</strong> é uma ferramenta baseada em Perl, também construída sobre o gcov, focada na coleta, organização e visualização gráfica detalhada dos dados de cobertura.</p>
+
+  <h4>Principais características</h4>
+  <ul>
+    <li>Coleta arquivos <code>.gcda</code> e <code>.gcno</code></li>
+    <li>Permite merge, filter e reset dos dados de cobertura</li>
+    <li>Geração de relatórios HTML detalhados via <code>genhtml</code></li>
+    <li>Amplamente utilizado em ambientes Linux e pipelines CI</li>
+  </ul>
+
+  <h4>Tipos de cobertura suportados</h4>
+  <ul>
+    <li>Line coverage</li>
+    <li>Branch coverage</li>
+  </ul>
+
+  <div class="warn">Assim como o GCOVR, o LCOV não suporta MC/DC nativamente.</div>
+</section>
+
+<section id="links">
+  <h2>2. Links oficiais</h2>
+  <ul>
+    <li>GCOVR: <a href="https://github.com/gcovr/gcovr" target="_blank">https://github.com/gcovr/gcovr</a></li>
+    <li>LCOV: <a href="https://github.com/linux-test-project/lcov" target="_blank">https://github.com/linux-test-project/lcov</a></li>
+    <li>Unity Test Framework: <a href="https://github.com/ThrowTheSwitch/Unity" target="_blank">https://github.com/ThrowTheSwitch/Unity</a></li>
+  </ul>
+</section>
+
+<section id="projeto">
+  <h2>3. Projeto de exemplo para demonstração</h2>
+
+  <h3>3.1 Acesso ao projeto demonstração</h3>
+  <p>  <a href="https://github.com/erycaaf/tutorial-gcov-lcov-gcovr.git" target="_blank">https://github.com/erycaaf/tutorial-gcov-lcov-gcovr.git</a></p>
+
+  <h3>3.2 Estrutura didática utilizada neste tutorial</h3>
+  <pre>
+project/
+├── src/
+│   ├── calculator.c
+│   └── calculator.h
+├── test/
+│   ├── test_calculator.c
+│   ├── test_calculator_unity.c
+│   └── unity/
+│       ├── unity.c
+│       ├── unity.h
+│       ├── unity_internals.h
+│       └── unity_config.h
+└── Makefile
+  </pre>
+
+  <div class="note">A estrutura foi mantida propositalmente simples para facilitar o entendimento do fluxo de cobertura.</div>
+</section>
+
+<section id="instalacao">
+  <h2>4. Instalação das ferramentas</h2>
+
+  <h3>4.1 Criando ambiente virtual Python (recomendado)</h3>
+
+  <h4>Linux</h4>
+  <pre>python -m venv venv
+source venv/bin/activate</pre>
+
+  <h4>Windows (PowerShell)</h4>
+  <pre>python -m venv venv
+venv\Scripts\activate</pre>
+
+  <h3>4.2 Instalação do GCOVR (Linux & Windows)</h3>
+  <pre>pip install gcovr</pre>
+  <p>Verificação da instalação:</p>
+  <pre>gcovr --version</pre>
+
+  <h3>4.3 Instalação do LCOV</h3>
+
+  <h4>Linux (Ubuntu / Debian / WSL)</h4>
+  <pre>sudo apt update
+sudo apt install lcov</pre>
+
+  <h4>Linux (Fedora)</h4>
+  <pre>sudo dnf install lcov</pre>
+
+  <h4>Windows</h4>
+  <p>O LCOV não é nativo no Windows. Recomendações:</p>
+  <ul>
+    <li>WSL (Ubuntu) – melhor opção</li>
+    <li>Docker</li>
+    <li>MSYS2 (uso avançado)</li>
+  </ul>
+</section>
+
+<section id="unity">
+  <h2>5. Instalação do Unity Test Framework (passo a passo)</h2>
+
+  <h3>5.1 Clonar o Unity</h3>
+  <pre>git clone https://github.com/ThrowTheSwitch/Unity.git</pre>
+  <div class="note">Alternativamente, é possível baixar o repositório em formato ZIP.</div>
+
+  <h3>5.2 Copiar arquivos necessários</h3>
+  <p>Somente os arquivos abaixo são necessários:</p>
+  <ul>
+    <li>unity.c</li>
+    <li>unity.h</li>
+    <li>unity_internals.h</li>
+  </ul>
+
+  <p>Coloque-os no diretório:</p>
+  <pre>test/unity/</pre>
+
+  <h3>5.3 Configuração correta para uso de double</h3>
+
+  <h4>5.3.1 Criar o arquivo <code>unity_config.h</code></h4>
+  <pre>#ifndef UNITY_CONFIG_H
+#define UNITY_CONFIG_H
+#define UNITY_INCLUDE_DOUBLE
+#endif</pre>
+
+  <h4>5.3.2 Ordem correta dos includes no <code>unity.h</code></h4>
+  <pre>#include "unity_config.h"
+#include "unity_internals.h"</pre>
+
+  <div class="warn">O arquivo <code>unity_config.h</code> deve ser incluído antes de <code>unity_internals.h</code> para que as configurações tenham efeito.</div>
+</section>
+
+<section id="execucao">
+  <h2>6. Execução sem o Unity </h2>
+
+  <h3>6.1 Compilação com cobertura</h3>
+  <pre>gcc -fprofile-arcs -ftest-coverage -O0 src/calculator.c test/test_calculator.c -o test_calculator</pre>
+
+  <h3>6.2 Executar</h3>
+  <pre>./test_calculator</pre>
+
+  <div class="note">Arquivos gerados: <code>.gcno</code> (estrutura) e <code>.gcda</code> (execução).</div>
+
+  <h2>7. Execução com Unity</h2>
+
+  <h3>7.1 Compilação com cobertura</h3>
+  <pre>gcc -fprofile-arcs -ftest-coverage -O0 -g src/calculator.c test/test_calculator_unity.c test/unity/unity.c -Isrc -Itest/unity -o test_calculator</pre>
+
+  <h3>7.2 Executar</h3>
+  <pre>./test_calculator</pre>
+</section>
+
+<section id="gcovr">
+  <h2>8. Utilizando o GCOVR</h2>
+
+  <h3>8.1 Relatório no terminal para calculator.c</h3>
+  <pre>gcovr --filter src/calculator.c</pre>
+
+  <h3>8.2 Coberturas específicas</h3>
+  <pre>gcovr --filter src/calculator.c --txt-metric line</pre>
+  <pre>gcovr --filter src/calculator.c --txt-metric branch</pre>
+
+  <h3>8.3 Gerar relatórios</h3>
+
+  <h4>8.3.1 HTML</h4>
+  <pre>gcovr -r . --html --html-details -o coverage.html</pre>
+
+  <h4>8.3.2 Abrindo HTML</h4>
+  <pre>xdg-open coverage_gcovr.html</pre>
+
+  <h4>8.3.3 XML (CI / SonarQube)</h4>
+  <pre>gcovr -r . --xml -o coverage.xml</pre>
+
+  <h4>8.3.4 JSON</h4>
+  <pre>gcovr -r . --json -o coverage.json</pre>
+</section>
+
+<section id="lcov">
+  <h2>9. Utilizando LCOV</h2>
+
+  <h3>9.1 Capturar dados</h3>
+  <pre>lcov --capture --directory . --output-file coverage.info</pre>
+  <p>Ou alternativamente:</p>
+  <pre>lcov -c -d . -o coverage.info</pre>
+
+  <h3>9.2 Filtrar arquivos de teste</h3>
+  <pre>lcov -l coverage.info</pre>
+
+  <h3>9.3 Gerar HTML</h3>
+  <pre>genhtml coverage.info -o coverage_report</pre>
+
+  <h4>9.3.1 Gerar report HTML com cobertura de branches</h4>
+  <pre>lcov --rc lcov_branch_coverage=1 -c -d . -o coverage.info genhtml --branch-coverage coverage.info -o coverage_report</pre>
+
+  <h4>9.3.2 Abrir HTML direto do terminal</h4>
+  <pre>xdg-open coverage_report/index.html</pre>
+</section>
+
+<section id="mcdc">
+  <h2>10. MC/DC no GCOVR</h2>
+  <p>O suporte a MC/DC não é nativo.</p>
+  <p>É possível apenas com:</p>
+  <ul>
+    <li>Instrumentação manual</li>
+    <li>Ferramentas externas</li>
+    <li>Análise combinada (exemplo: scripts Python)</li>
+  </ul>
+</section>
+
+<section id="makefile">
+  <h2>11. Makefile</h2>
+  <p>O Makefile será utilizado para automatizar os processos de build, execução e geração de relatórios de cobertura apresentados neste tutorial. O Makefile garante repetibilidade, reduz erros manuais e documenta o processo de build e cobertura.</p>
+
+   <h3>11.1 Targets de compilação</h3>
+  <p>
+    Estes targets são responsáveis por compilar o projeto com as flags de
+    cobertura habilitadas.
+  </p>
+  <ul>
+    <li><strong>build-no-unity</strong>: compila o projeto utilizando testes simples, sem framework</li>
+    <li><strong>build-unity</strong>: compila o projeto utilizando o Unity Test Framework</li>
+  </ul>
+
+  <pre>make build-no-unity
+make build-unity</pre>
+
+  <h3>11.2 Execução dos testes</h3>
+  <p>
+    Após a compilação, o binário de testes deve ser executado para que os
+    arquivos <code>.gcda</code> sejam gerados.
+  </p>
+
+  <pre>make run</pre>
+
+  <div class="note">
+    A execução é obrigatória para que os dados de cobertura sejam coletados.
+  </div>
+
+  <h3>11.3 Targets de cobertura com GCOVR</h3>
+  <p>
+    Os comandos abaixo utilizam o GCOVR para gerar relatórios de cobertura a
+    partir dos dados coletados pelo gcov.
+  </p>
+
+  <ul>
+    <li><strong>gcovr-line</strong>: exibe cobertura de linhas no terminal</li>
+    <li><strong>gcovr-branch</strong>: exibe cobertura de branch no terminal</li>
+    <li><strong>gcovr-decision</strong>: exibe cobertura de decisões (quando aplicável)</li>
+    <li><strong>gcovr-html</strong>: gera relatório HTML detalhado</li>
+    <li><strong>gcovr-xml</strong>: gera relatório XML (uso em CI/SonarQube)</li>
+    <li><strong>gcovr-json</strong>: gera relatório em JSON</li>
+  </ul>
+
+  <pre>make gcovr-line
+make gcovr-branch
+make gcovr-html
+make gcovr-xml
+make gcovr-json</pre>
+
+  <h3>11.4 Targets de cobertura com LCOV</h3>
+  <p>
+    Estes comandos utilizam o LCOV para capturar os dados de cobertura e gerar
+    relatórios HTML detalhados.
+  </p>
+
+  <ul>
+    <li><strong>lcov-capture</strong>: captura os dados de cobertura</li>
+    <li><strong>lcov-list</strong>: lista a cobertura no terminal</li>
+    <li><strong>lcov-html</strong>: gera relatório HTML com cobertura de branch</li>
+    <li><strong>lcov</strong>: captura os dados e gera o HTML em um único passo</li>
+  </ul>
+
+  <pre>make lcov-capture
+make lcov-list
+make lcov-html
+make lcov</pre>
+
+  <h3>11.5 Fluxo recomendado para rodar com Unity</h3>
+  <p>
+    O fluxo abaixo representa a sequência recomendada para executar testes com
+    Unity e gerar relatórios de cobertura de forma limpa e reprodutível.
+  </p>
+
+  <pre>make clean
+make build-unity
+make run
+make gcovr-html</pre>
+
+  <div class="tip">
+    Este fluxo deve ser utilizado sempre que novos testes forem adicionados ou
+    quando houver alterações no código-fonte.
+  </div>
+
+  <h3>11.6 Limpeza do ambiente</h3>
+  <p>
+    O target <code>clean</code> remove o binário gerado e todos os arquivos
+    relacionados à cobertura, garantindo uma nova execução sem resíduos.
+  </p>
+
+  <pre>make clean</pre>
+</section>

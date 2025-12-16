@@ -252,7 +252,7 @@ sudo apt install lcov</pre>
   <pre>gcovr -r . --html --html-details -o coverage.html</pre>
 
   <h4>8.3.2 Abrindo HTML</h4>
-  <pre>xdg-open coverage_gcovr.html</pre>
+  <pre>xdg-open coverage.html</pre>
 
   <h4>8.3.3 XML (CI / SonarQube)</h4>
   <pre>gcovr -r . --xml -o coverage.xml</pre>
@@ -276,7 +276,8 @@ sudo apt install lcov</pre>
   <pre>genhtml coverage.info -o coverage_report</pre>
 
   <h4>9.3.1 Gerar report HTML com cobertura de branches</h4>
-  <pre>lcov --rc lcov_branch_coverage=1 -c -d . -o coverage.info genhtml --branch-coverage coverage.info -o coverage_report</pre>
+  <pre>lcov --rc lcov_branch_coverage=1 -c -d . -o coverage.info</pre>
+  <pre>genhtml --branch-coverage coverage.info -o coverage_report</pre>
 
   <h4>9.3.2 Abrir HTML direto do terminal</h4>
   <pre>xdg-open coverage_report/index.html</pre>
